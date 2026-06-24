@@ -407,7 +407,6 @@ export default function CRM({ user }) {
                 </tr></thead>
                 <tbody>
                   {pageData.map((r, i) => {
-                    const cfg = ESTADO_CFG[r.estado] || ESTADO_CFG['Sin estado'];
                     return (
                       <tr key={r.id} onClick={() => setDetail(r)}
                         style={{ borderBottom: '1px solid #f3f4f6', cursor: 'pointer', background: detail?.id === r.id ? '#eff6ff' : i % 2 === 0 ? '#fff' : '#fafafa' }}
