@@ -9,17 +9,21 @@ export const fmtDate = r => {
 };
 
 export const normEstado = s => {
-  if (!s) return 'Sin estado';
+  if (!s) return 'NUEVA SOLICITUD';
   const m = {
-    'RECIEN COTIZADO':'Recién Cotizado','RECIÉN COTIZADO':'Recién Cotizado',
-    'POR COTIZAR':'Por Cotizar','EVALUACIÓN GENERAL':'Evaluación General',
-    'EVALUACION GENERAL':'Evaluación General','GANADO':'Ganado','PERDIDO':'Perdido',
-    'NEGOCIACIÓN':'Negociación','NEGOCIACION':'Negociación',
-    'COMPARATIVO DE OFERTAS':'Comparativo de Ofertas',
-    'COTIZADO':'Cotizado','cotizado':'Cotizado','Cotizado':'Cotizado',
-    'NO SE COTIZA':'No se Cotiza','RECOTIZAR':'Recotizar',
+    'NUEVA SOLICITUD':'NUEVA SOLICITUD','POR COTIZAR':'POR COTIZAR',
+    'COTIZADO':'COTIZADO','Cotizado':'COTIZADO','cotizado':'COTIZADO',
+    '1° SEGUIMIENTO':'1° SEGUIMIENTO','2° SEGUIMIENTO':'2° SEGUIMIENTO',
+    'ESPERANDO OC':'ESPERANDO OC','GANADO':'GANADO','PERDIDO':'PERDIDO',
+    'NO SE COTIZA':'NO SE COTIZA',
+    // estados viejos → nuevos
+    'RECIEN COTIZADO':'COTIZADO','RECIÉN COTIZADO':'COTIZADO',
+    'EVALUACIÓN GENERAL':'COTIZADO','EVALUACION GENERAL':'COTIZADO',
+    'COMPARATIVO DE OFERTAS':'COTIZADO','NEGOCIACIÓN':'COTIZADO',
+    'NEGOCIACION':'COTIZADO','RECOTIZAR':'POR COTIZAR',
+    'SIN ESTADO':'NUEVA SOLICITUD',
   };
-  return m[s.trim()] || s.trim();
+  return m[s.trim()] || 'NUEVA SOLICITUD';
 };
 
 export const normRubro = s => {
@@ -44,6 +48,61 @@ export const normRubro = s => {
   return m[r] || s.trim().charAt(0).toUpperCase() + s.trim().slice(1).toLowerCase();
 };
 
+// ── Excel export → .xlsx idéntico al original ──────────────────────────────
+export const exportXLSX = async (records) => {
+  const XLSX = await import('xlsx');
+  const ESTADOS_LIST = [
+    'NUEVA SOLICITUD','POR COTIZAR','COTIZADO',
+    '1° SEGUIMIENTO','2° SEGUIMIENTO','ESPERANDO OC',
+    'GANADO','PERDIDO','NO SE COTIZA'
+  ];
+  const headers = [
+    'FECHA','MES','AÑO','EMPRESA','NOMBRE','RUBRO',
+    'PRODUCTO COTIZADO','MEDIDAS','M2','TIPO SOLICITUD',
+    'MAIL','TELÉFONO','CONTACTO','N° DE COTIZACION',
+    '% CIERRE','MONTO','FECHA SEGUIMIENTO',
+    'FECHA PROXIMO SEGUIMIENTO','COMENTARIOS SEGUIMIENTO',
+    '','FOLLOW','ESTADO','MENSAJE'
+  ];
+  const rows = records.map(r => [
+    r.fecha||'', r.mes||'', r.anio||'',
+    r.empresa||'', r.nombre||'', r.rubro||'',
+    r.producto||'', r.medidas||'', r.m2||'',
+    r.tipo||'', r.mail||'', r.telefono||'',
+    r.contacto||'', r.nCot||'',
+    r.pCierre!=null ? r.pCierre/100 : '',
+    r.monto||'',
+    r.fechaSeg||'', r.fechaProxSeg||'',
+    r.comentarioSeg||'',
+    '', // col T vacía
+    r.observacion||'',
+    r.estado||'',
+    ''  // MENSAJE
+  ]);
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...rows]);
+  // Lista desplegable en col V (estado)
+  ws['!dataValidation'] = ws['!dataValidation'] || [];
+  const lastRow = records.length + 1;
+  ws['!dataValidation'].push({
+    type: 'list',
+    allowBlank: true,
+    sqref: `V2:V${lastRow}`,
+    formula1: `"${ESTADOS_LIST.join(',')}"`,
+  });
+  // Ancho de columnas
+  ws['!cols'] = [
+    {wch:12},{wch:6},{wch:6},{wch:30},{wch:25},{wch:15},
+    {wch:20},{wch:18},{wch:8},{wch:12},
+    {wch:28},{wch:14},{wch:10},{wch:14},
+    {wch:10},{wch:14},{wch:14},{wch:18},{wch:30},
+    {wch:4},{wch:40},{wch:18},{wch:20}
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'BASE ');
+  XLSX.writeFile(wb, 'Base_Solicitudes_Fulltent.xlsx');
+};
+
+// ── Excel import parser ─────────────────────────────────────────────────────
 export const parseExcelFile = (file, onDone, onError) => {
   import('xlsx').then(XLSX => {
     const reader = new FileReader();
@@ -64,13 +123,13 @@ export const parseExcelFile = (file, onDone, onError) => {
           const pRaw = r[14];
           const pCierre = pRaw != null ? Math.round(parseFloat(pRaw) * 100) : null;
           const monto = r[15] ? parseFloat(r[15]) : null;
-          const m2Raw = r[8];
-          const m2 = m2Raw ? parseFloat(String(m2Raw).replace(',', '.')) : null;
+          const m2 = r[8] ? parseFloat(String(r[8]).replace(',', '.')) : null;
           const tel = r[11] ? String(Math.round(parseFloat(r[11])) || r[11]) : '';
           const ncot = r[13] ? String(r[13]).trim() : '';
           const follow = r[20] ? String(r[20]).trim() : '';
+          const comentarioSeg = r[18] ? String(r[18]).trim() : '';
           let mes = r[1] ? String(r[1]).trim().toUpperCase() : '';
-          if (mes === 'sep') mes = 'SEP';
+          if (mes === 'SEPT') mes = 'SEP';
           return {
             id: `xl${i + 1}`,
             fecha, dia,
@@ -82,9 +141,11 @@ export const parseExcelFile = (file, onDone, onError) => {
             medidas: r[7] ? String(r[7]).trim() : '',
             m2, tipo: r[9] ? String(r[9]).trim() : 'COMPRA',
             mail: r[10] ? String(r[10]).trim().replace(/\xa0/g, '') : '',
-            telefono: tel,
-            contacto: r[12] ? String(r[12]).trim() : '',
+            telefono: tel, contacto: r[12] ? String(r[12]).trim() : '',
             nCot: ncot, pCierre, monto,
+            fechaSeg: r[16] ? String(r[16]).trim() : '',
+            fechaProxSeg: r[17] ? String(r[17]).trim() : '',
+            comentarioSeg,
             estado: normEstado(r[21]),
             observacion: follow,
           };
