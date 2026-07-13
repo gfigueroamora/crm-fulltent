@@ -1,3 +1,4 @@
+// CRM Cobertores v3
 import { useState, useMemo, useEffect, useCallback, useRef } from 'react';
 import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch } from 'firebase/firestore';
 import { signOut } from 'firebase/auth';
