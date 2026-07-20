@@ -63,9 +63,7 @@ function AppShell({ user }) {
       </div>
 
       {/* Contenido */}
-      <div style={{ display: activeTab==='cobertores' ? 'block' : 'none' }}>
-        <CRM user={user}/>
-      </div>
+      {activeTab==='cobertores' && <CRM user={user}/>}
       <div style={{ display: activeTab==='carpas' ? 'block' : 'none' }}>
         <CRMCarpas/>
       </div>
