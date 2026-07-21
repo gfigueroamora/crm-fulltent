@@ -9,15 +9,20 @@ export const PIPE_STAGES = [
   '1° SEGUIMIENTO','2° SEGUIMIENTO','ESPERANDO OC',
   'GANADO','PERDIDO','NO SE COTIZA'
 ];
-
-export const MESES_ORDER = [
-  'ENE','FEB','MAR','ABR','MAY','JUN',
-  'JUL','AGO','SEP','OCT','NOV','DIC'
-];
-
-export const MESES_KEYS = [
-  {mes:'JUN',anio:2025},{mes:'JUL',anio:2025},{mes:'AGO',anio:2025},
-  {mes:'SEP',anio:2025},{mes:'OCT',anio:2025},{mes:'NOV',anio:2025},
+export const getMesesRange = (records) => {
+  const seen = new Set();
+  records.forEach(r => {
+    if (r.mes && r.anio) {
+      const m = String(r.mes).trim().toUpperCase();
+      seen.add(`${r.anio}-${String(MESES_ORDER.indexOf(m)).padStart(2,'0')}-${m}-${r.anio}`);
+    }
+  });
+  if (seen.size === 0) return { keys: [], labels: [] };
+  const sorted = [...seen].sort();
+  const keys = sorted.map(s => { const p=s.split('-'); return {mes:p[2],anio:parseInt(p[3])}; });
+  const labels = keys.map(k => `${k.mes} ${String(k.anio).slice(2)}`);
+  return { keys, labels };
+};
   {mes:'DIC',anio:2025},{mes:'ENE',anio:2026},{mes:'FEB',anio:2026},
   {mes:'MAR',anio:2026},{mes:'ABR',anio:2026},{mes:'MAY',anio:2026},
   {mes:'JUN',anio:2026}
