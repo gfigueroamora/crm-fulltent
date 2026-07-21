@@ -9,6 +9,7 @@ export const PIPE_STAGES = [
   '1° SEGUIMIENTO','2° SEGUIMIENTO','ESPERANDO OC',
   'GANADO','PERDIDO','NO SE COTIZA'
 ];
+export const MESES_ORDER = ['ENE','FEB','MAR','ABR','MAY','JUN','JUL','AGO','SEP','OCT','NOV','DIC'];
 export const getMesesRange = (records) => {
   const pairs = {};
   records.forEach(r => {
