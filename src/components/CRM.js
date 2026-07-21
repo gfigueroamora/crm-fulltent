@@ -4,7 +4,7 @@ import { collection, getDocs, addDoc, updateDoc, deleteDoc, doc, writeBatch } fr
 import { signOut } from 'firebase/auth';
 import { db, auth } from '../firebase';
 import SEED_DATA from '../seedData';
-import { ESTADOS, PIPE_STAGES, MESES_KEYS, MESES_LABELS, MESES_ORDER, RUBRO_LIST, ESTADO_CFG, PIE_COLORS, FTBLUE } from '../constants';
+import { ESTADOS, PIPE_STAGES, MESES_ORDER, RUBRO_LIST, ESTADO_CFG, PIE_COLORS, FTBLUE, getMesesRange } from '../constants';
 import { fmtCLP, fmtM2, fmtDate, parseExcelFile, exportXLSX } from '../utils';
 import Modal from './Modal';
 
@@ -250,6 +250,7 @@ export default function CRM({user}){
   const byEstado=ESTADOS.map(e=>({label:e,value:base.filter(r=>r.estado===e).length,color:(ESTADO_CFG[e]||{c:'#94a3b8'}).c})).filter(d=>d.value>0);
   const byRubroArr=Object.entries(base.reduce((acc,r)=>{if(r.rubro){acc[r.rubro]=acc[r.rubro]||{count:0,monto:0};acc[r.rubro].count++;acc[r.rubro].monto+=r.monto||0;}return acc;},{})).sort((a,b)=>b[1].count-a[1].count).slice(0,10);
   const maxRubro=byRubroArr[0]?.[1].count||1;
+  const {keys:MESES_KEYS,labels:MESES_LABELS}=useMemo(()=>getMesesRange(base),[base]);
   const mesData=MESES_KEYS.map((mk,i)=>{const items=base.filter(r=>r.mes===mk.mes&&r.anio===mk.anio);return{label:MESES_LABELS[i],total:items.length,ganados:items.filter(r=>r.estado==='Ganado').length};});
   const forecast=PIPE_STAGES.filter(s=>!['Ganado','Perdido'].includes(s)).map(s=>{const items=base.filter(r=>r.estado===s&&r.monto&&r.pCierre!=null);return{stage:s,count:items.length,pond:items.reduce((a,r)=>a+r.monto*(r.pCierre/100),0),cfg:ESTADO_CFG[s]||{c:'#94a3b8',bg:'#f9fafb'}};}).filter(f=>f.pond>0);
   const totalForecast=forecast.reduce((a,f)=>a+f.pond,0);
