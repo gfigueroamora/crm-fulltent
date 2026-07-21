@@ -38,3 +38,4 @@ src/
     CRM.js           # App principal
     Modal.js         # Formulario crear/editar
 ```
+# updated Tue, Jul 21, 2026  4:15:50 PM
