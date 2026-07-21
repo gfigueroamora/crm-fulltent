@@ -234,9 +234,9 @@ export default function CRM({user}){
 
   const hasFilter=!!(search||fMeses.length>0||fAnio||fEstados.length>0||fRubro);
   const base=hasFilter?filtered:records;
-  const ganados=useMemo(()=>base.filter(r=>r.estado==='Ganado'),[base]);
-  const perdidos=useMemo(()=>base.filter(r=>r.estado==='Perdido'),[base]);
-  const pipeline=useMemo(()=>base.filter(r=>!['Ganado','Perdido','Sin estado','No se Cotiza'].includes(r.estado)),[base]);
+  const ganados=useMemo(()=>base.filter(r=>r.estado==='GANADO'||r.estado==='Ganado'),[base]);
+  const perdidos=useMemo(()=>base.filter(r=>r.estado==='PERDIDO'||r.estado==='Perdido'),[base]);
+  const pipeline=useMemo(()=>base.filter(r=>!['GANADO','Ganado','PERDIDO','Perdido','Sin estado','No se Cotiza'].includes(r.estado)),[base]);
   const montoGan=ganados.reduce((a,r)=>a+(r.monto||0),0);
   const montoPipe=pipeline.reduce((a,r)=>a+(r.monto||0),0);
   const tasaConv=ganados.length+perdidos.length>0?Math.round(ganados.length/(ganados.length+perdidos.length)*100):0;
@@ -251,7 +251,7 @@ export default function CRM({user}){
   const byRubroArr=Object.entries(base.reduce((acc,r)=>{if(r.rubro){acc[r.rubro]=acc[r.rubro]||{count:0,monto:0};acc[r.rubro].count++;acc[r.rubro].monto+=r.monto||0;}return acc;},{})).sort((a,b)=>b[1].count-a[1].count).slice(0,10);
   const maxRubro=byRubroArr[0]?.[1].count||1;
   const {keys:MESES_KEYS,labels:MESES_LABELS}=useMemo(()=>getMesesRange(base),[base]);
-  const mesData=MESES_KEYS.map((mk,i)=>{const items=base.filter(r=>r.mes===mk.mes&&r.anio===mk.anio);return{label:MESES_LABELS[i],total:items.length,ganados:items.filter(r=>r.estado==='Ganado').length};});
+  const mesData=MESES_KEYS.map((mk,i)=>{const items=base.filter(r=>r.mes===mk.mes&&r.anio===mk.anio);return{label:MESES_LABELS[i],total:items.length,ganados:items.filter(r=>r.estado==='GANADO'||r.estado==='Ganado').length};});
   const forecast=PIPE_STAGES.filter(s=>!['Ganado','Perdido'].includes(s)).map(s=>{const items=base.filter(r=>r.estado===s&&r.monto&&r.pCierre!=null);return{stage:s,count:items.length,pond:items.reduce((a,r)=>a+r.monto*(r.pCierre/100),0),cfg:ESTADO_CFG[s]||{c:'#94a3b8',bg:'#f9fafb'}};}).filter(f=>f.pond>0);
   const totalForecast=forecast.reduce((a,f)=>a+f.pond,0);
   const maxForecast=forecast[0]?.pond||1;
@@ -629,7 +629,7 @@ export default function CRM({user}){
                     {mesData.filter(d=>d.total>0).map((d,i)=>{
                       const mk=MESES_KEYS[MESES_LABELS.indexOf(d.label)];
                       const items=mk?base.filter(r=>r.mes===mk.mes&&r.anio===mk.anio):[];
-                      const montoMes=items.filter(r=>r.estado==='Ganado').reduce((a,r)=>a+(r.monto||0),0);
+                      const montoMes=items.filter(r=>r.estado==='GANADO'||r.estado==='Ganado').reduce((a,r)=>a+(r.monto||0),0);
                       return(
                         <tr key={i} style={{borderBottom:'1px solid #f1f5f9'}}>
                           <td style={{padding:'6px 10px',fontWeight:600,color:'#334155'}}>{d.label}</td>
