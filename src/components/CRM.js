@@ -282,6 +282,20 @@ export default function CRM({user}){
       )}
 
       {/* KPIs */}
+      {/* Sub-header navegación */}
+      <div style={{background:'#0f2744',borderBottom:'1px solid rgba(255,255,255,.08)',padding:'8px 20px',display:'flex',alignItems:'center',justifyContent:'space-between',flexWrap:'wrap',gap:8}}>
+        <div style={{display:'flex',gap:4}}>
+          {[['lista','📋 Lista'],['pipeline','📊 Pipeline'],['stats','📈 Estadísticas']].map(([v,lbl])=>(
+            <button key={v} onClick={()=>setView(v)} style={{padding:'6px 14px',borderRadius:8,border:'none',cursor:'pointer',fontSize:12,fontWeight:600,fontFamily:INTER,background:view===v?'rgba(255,255,255,.18)':'transparent',color:view===v?'#fff':'rgba(255,255,255,.5)',borderBottom:view===v?'2px solid #3b82f6':'2px solid transparent',transition:'.15s'}}>{lbl}</button>
+          ))}
+        </div>
+        <div style={{display:'flex',gap:6,flexWrap:'wrap'}}>
+          {saving&&<span style={{fontSize:11,color:'rgba(255,255,255,.5)'}}>Guardando...</span>}
+          <button onClick={()=>setModal({})} style={{padding:'6px 14px',borderRadius:8,border:'none',background:'#22c55e',color:'#fff',cursor:'pointer',fontWeight:700,fontSize:12,fontFamily:INTER}}>＋ Nuevo</button>
+          <button onClick={()=>exportXLSX(records)} style={{padding:'6px 11px',borderRadius:8,border:'1px solid rgba(255,255,255,.2)',background:'rgba(255,255,255,.08)',color:'#fff',cursor:'pointer',fontSize:12,fontFamily:INTER}}>↓ Excel</button>
+          <label style={{padding:'6px 11px',borderRadius:8,border:'1px solid rgba(255,255,255,.2)',background:'rgba(255,255,255,.08)',color:'#fff',cursor:'pointer',fontSize:12,fontFamily:INTER,fontWeight:600}}>↑ Excel<input ref={xlsxRef} type="file" accept=".xlsx,.xls" onChange={handleXLSXSelect} style={{display:'none'}}/></label>
+        </div>
+      </div>
       <div style={{padding:'16px 20px'}}>
         {hasFilter&&(
           <div style={{display:'flex',alignItems:'center',justifyContent:'space-between',background:'#eff6ff',border:'1.5px solid #bfdbfe',borderRadius:10,padding:'9px 16px',marginBottom:12,fontFamily:INTER}}>
