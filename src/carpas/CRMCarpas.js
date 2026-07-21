@@ -13,7 +13,6 @@ import {
   ESTADO_CFG_CARPAS, FTBLUE, PIE_COLORS
 } from './carpasConstants';
 import { uid, fmtUF, fmtCLP, fmtM2, fmtPct, fmtDate, calcMargen, parseExcelCarpas, exportXLSXCarpas } from './carpasUtils';
-import Modal from './ModalCarpas';
 
 const COLLECTION = 'carpas';
 const INTER = "'Inter',-apple-system,BlinkMacSystemFont,sans-serif";
