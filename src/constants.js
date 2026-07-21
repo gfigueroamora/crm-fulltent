@@ -10,23 +10,19 @@ export const PIPE_STAGES = [
   'GANADO','PERDIDO','NO SE COTIZA'
 ];
 export const getMesesRange = (records) => {
-  const seen = new Set();
+  const pairs = {};
   records.forEach(r => {
     if (r.mes && r.anio) {
       const m = String(r.mes).trim().toUpperCase();
-      seen.add(`${r.anio}-${String(MESES_ORDER.indexOf(m)).padStart(2,'0')}-${m}-${r.anio}`);
+      const a = parseInt(r.anio);
+      const key = `${a}-${String(MESES_ORDER.indexOf(m)).padStart(2,'0')}`;
+      pairs[key] = { mes: m, anio: a };
     }
   });
-  if (seen.size === 0) return { keys: [], labels: [] };
-  const sorted = [...seen].sort();
-  const keys = sorted.map(s => { const p=s.split('-'); return {mes:p[2],anio:parseInt(p[3])}; });
+  const keys = Object.keys(pairs).sort().map(k => pairs[k]);
   const labels = keys.map(k => `${k.mes} ${String(k.anio).slice(2)}`);
   return { keys, labels };
 };
-  {mes:'DIC',anio:2025},{mes:'ENE',anio:2026},{mes:'FEB',anio:2026},
-  {mes:'MAR',anio:2026},{mes:'ABR',anio:2026},{mes:'MAY',anio:2026},
-  {mes:'JUN',anio:2026}
-];
 
 export const MESES_LABELS = [
   'JUN 25','JUL 25','AGO 25','SEP 25','OCT 25','NOV 25','DIC 25',
